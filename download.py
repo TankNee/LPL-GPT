@@ -25,6 +25,7 @@ def create_logger():
 def get_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--video_list", type=str, default="video_list.json")
+    parser.add_argument("--record_file", type=str, default="./config/records.jsonl")
     parser.add_argument("--output_dir", type=str, default="videos")
     return parser.parse_args()
 
@@ -108,7 +109,7 @@ def main():
     with open(args.video_list, "r") as f:
         video_list = json.load(f)
 
-    with open("./config/records.jsonl", "a+") as f:
+    with open(args.record_file, "a+") as f:
         f.seek(0)
         records = [json.loads(line) for line in f]
         f.seek(0, 2)
