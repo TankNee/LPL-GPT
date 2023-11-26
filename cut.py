@@ -60,6 +60,8 @@ def main():
     args = get_args()
     records = read_jsonl(args.record_files)
     records = [record for record in records if record["playlist_idx"]]
+    if not os.path.exists(args.output_dir):
+        os.mkdir(args.output_dir)
     for record in records:
         video_url = record["url"]
         for idx, p_idx in enumerate(record["playlist_idx"]):
