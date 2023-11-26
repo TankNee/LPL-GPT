@@ -1,12 +1,11 @@
 import argparse
-import functools
 import json
 import os
 import re
 import shutil
 import subprocess
-from datetime import datetime
 import time
+from datetime import datetime
 
 from loguru import logger
 from selenium import webdriver
@@ -14,33 +13,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from tqdm import tqdm
 
-
-def create_logger():
-    logger.add(
-        "./logs/download.log",
-        level="DEBUG",
-        rotation="10 MB",
-        compression="zip",
-    )
-
-
-def retry(retry_times, default=None):
-    def decorator(func):
-        @functools.wraps(func)
-        def wrapper(*args, **kwargs):
-            for _ in range(retry_times):
-                try:
-                    output = func(*args, **kwargs)
-                    return output if output is not None else default
-                except Exception as e:
-                    logger.warning(f"Function execution failed, retrying... {e}")
-                    time.sleep(30)
-
-            raise Exception("Function execution failed after multiple retries.")
-
-        return wrapper
-
-    return decorator
+from common import create_logger, retry
 
 
 def get_args() -> argparse.Namespace:

@@ -4,11 +4,11 @@ import subprocess
 import time
 
 from loguru import logger
-
-from common import read_jsonl
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+
+from common import create_logger, read_jsonl, retry
 
 
 def get_args():
@@ -19,6 +19,7 @@ def get_args():
     args = parser.parse_args()
     return args
 
+@retry(5)
 def get_start_point(video_url):
     # 创建Chrome浏览器选项
     chrome_options = Options()
@@ -31,14 +32,19 @@ def get_start_point(video_url):
     driver.get(video_url)
     # 等待网页加载完成
     time.sleep(15)
+    logger.info(f"打开网页 {video_url}")
 
     # 获取播放列表长度
-    icon_list_selector = "#bilibili-player > div > div > div.bpx-player-primary-area > div.bpx-player-video-area > div.bpx-player-control-wrap > div.bpx-player-control-entity > div.bpx-player-control-top > div > div.bpx-player-progress-freezone"
-    icon_list = driver.find_element(By.CSS_SELECTOR, icon_list_selector)
-    # 查找icon_list中第一个子元素的img标签的data-seek属性
-    icon_list = icon_list.find_element(By.TAG_NAME, "img")
-    start_point = icon_list.get_attribute("data-seek")
-    start_point = int(start_point)
+    try:
+        icon_list_selector = "#bilibili-player > div > div > div.bpx-player-primary-area > div.bpx-player-video-area > div.bpx-player-control-wrap > div.bpx-player-control-entity > div.bpx-player-control-top > div > div.bpx-player-progress-freezone"
+        icon_list = driver.find_element(By.CSS_SELECTOR, icon_list_selector)
+        # 查找icon_list中第一个子元素的img标签的data-seek属性
+        icon_list = icon_list.find_element(By.TAG_NAME, "img")
+        start_point = icon_list.get_attribute("data-seek")
+        start_point = int(start_point)
+    except:
+        start_point = 0
+        logger.warning(f"获取视频 {video_url} 的开始时间失败")
 
     # 关闭浏览器
     driver.quit()
@@ -69,7 +75,7 @@ def main():
             start_point = get_start_point(video_url + f"?p={p_idx}")
             logger.info(f"{teams}_{date}_{idx + 1} 的开始时间为{start_point}")
 
-            if start_point == 0 or not os.path.exists(input_file):
+            if not os.path.exists(input_file):
                 logger.warning(f"{teams}_{date}_{idx + 1} 的开始时间为{start_point}，该文件不存在，跳过")
                 continue
 
@@ -78,4 +84,5 @@ def main():
 
 
 if __name__ == "__main__":
+    create_logger("./logs/cut.log")
     main()
