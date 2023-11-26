@@ -12,6 +12,7 @@ from loguru import logger
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from tqdm import tqdm
 
 
 def create_logger():
@@ -140,11 +141,37 @@ def main():
         f.seek(0)
         records = [json.loads(line) for line in f]
         f.seek(0, 2)
-        for video_url in video_list:
+        for video_url in tqdm(video_list):
             if any([video_url == record["url"] for record in records]):
-                logger.info(f"视频{video_url}已经下载过了，跳过")
-                continue
-            teams, date, playlist_idx, start_point = get_video_info(video_url)
+                logger.info(f"视频{video_url}元信息已获取")
+                record = [record for record in records if record["url"] == video_url][0]
+                record["start_point"] = record["start_point"] if "start_point" in record else None
+                teams, date, playlist_idx, start_point = record["teams"], record["date"], record["playlist_idx"], record["start_point"]
+            else:
+                teams, date, playlist_idx, start_point = get_video_info(video_url)
+                if teams is not None:
+                    records.append(
+                        {
+                            "teams": teams,
+                            "date": date,
+                            "playlist_idx": playlist_idx,
+                            "url": video_url,
+                            "start_point": start_point,
+                        }
+                    )
+                    f.write(
+                        json.dumps(
+                            {
+                                "url": video_url,
+                                "teams": teams,
+                                "date": date,
+                                "playlist_idx": playlist_idx,
+                                "start_point": start_point,
+                            }
+                        )
+                        + "\n"
+                    )
+                    f.flush()
             if teams is not None:
                 logger.info(
                     f"获取到了{teams[0]} vs {teams[1]} {date} {len(playlist_idx)}P的比赛视频"
@@ -159,28 +186,6 @@ def main():
                     logger.info(f"开始下载{sub_file_name}")
                     download(video_url + f"?p={i}", sub_file_name, args.output_dir)
                     time.sleep(15)
-            records.append(
-                {
-                    "teams": teams,
-                    "date": date,
-                    "playlist_idx": playlist_idx,
-                    "url": video_url,
-                    "start_point": start_point,
-                }
-            )
-            f.write(
-                json.dumps(
-                    {
-                        "url": video_url,
-                        "teams": teams,
-                        "date": date,
-                        "playlist_idx": playlist_idx,
-                        "start_point": start_point,
-                    }
-                )
-                + "\n"
-            )
-            f.flush()
 
 
 if __name__ == "__main__":
