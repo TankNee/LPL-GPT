@@ -1,2 +1,5 @@
 loguru==0.7.1
+openai_whisper==20231117
+PyYAML==6.0.1
 selenium==4.15.2
+tqdm==4.66.1
