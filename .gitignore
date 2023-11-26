@@ -1,3 +1,4 @@
 .vscode
 videos
 logs
+__pycache__
