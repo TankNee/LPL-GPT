@@ -30,7 +30,7 @@ def get_start_point(video_url):
     # 打开网页
     driver.get(video_url)
     # 等待网页加载完成
-    time.sleep(10)
+    time.sleep(15)
 
     # 获取播放列表长度
     icon_list_selector = "#bilibili-player > div > div > div.bpx-player-primary-area > div.bpx-player-video-area > div.bpx-player-control-wrap > div.bpx-player-control-entity > div.bpx-player-control-top > div > div.bpx-player-progress-freezone"
@@ -56,23 +56,24 @@ def main():
     records = [record for record in records if record["playlist_idx"]]
     for record in records:
         video_url = record["url"]
+        offset = 0 if record["playlist_idx"][0] == 1 else 1
         for idx in record["playlist_idx"]:
             teams = record["teams"]
             date = record["date"]
             teams = "_".join(teams)
-            input_file = os.path.join(args.video_dir, f"{teams}_{date}_{idx}.mp4")
-            output_file = os.path.join(args.output_dir, f"{teams}_{date}_{idx}.mp4")
+            input_file = os.path.join(args.video_dir, f"{teams}_{date}_{idx + offset}.mp4")
+            output_file = os.path.join(args.output_dir, f"{teams}_{date}_{idx + offset}.mp4")
             if os.path.exists(output_file):
                 logger.info(f"{output_file} 已存在")
                 continue
 
-            start_point = get_start_point(video_url + f"?p={idx}")
-            logger.info(f"{teams}_{date}_{idx} 的开始时间为{start_point}")
+            start_point = get_start_point(video_url + f"?p={idx + offset}")
+            logger.info(f"{teams}_{date}_{idx + offset} 的开始时间为{start_point}")
 
             if start_point == 0 or not os.path.exists(input_file):
-                logger.warning(f"{teams}_{date}_{idx} 的开始时间为{start_point}，该文件不存在，跳过")
+                logger.warning(f"{teams}_{date}_{idx + offset} 的开始时间为{start_point}，该文件不存在，跳过")
                 continue
-            
+
             cut_video(input_file, output_file, str(start_point))
             time.sleep(30)
 
