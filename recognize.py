@@ -12,7 +12,8 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("--video_dir", type=str, default="videos")
     parser.add_argument("--output_dir", type=str, default="output")
-    parser.add_argument("--model_path", type=str, default="/path/to/model.pt")
+    parser.add_argument("--model_name", type=str, default="base")
+    parser.add_argument("--model_path", type=str, default="path/to/model")
     return parser.parse_args()
     
 def recognize(model: Whisper, video_path: str):
@@ -25,7 +26,7 @@ def main():
 
     video_list = glob.glob(os.path.join(args.video_dir, "*.mp4"))
     # load whisper model
-    model = whisper.load_model(name=args.model_path).cuda()
+    model = whisper.load_model(name=args.model_name, download_root=args.model_path)
     for video_path in video_list:
         res = recognize(model, video_path)
         logger.info(f"{video_path}: {res}")
