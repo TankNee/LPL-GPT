@@ -56,7 +56,7 @@ def main():
     records = [record for record in records if record["playlist_idx"]]
     for record in records:
         video_url = record["url"]
-        offset = 0 if record["playlist_idx"][0] == 1 else 1
+        offset = 0 if record["playlist_idx"][0] == 1 else -1
         for idx in record["playlist_idx"]:
             teams = record["teams"]
             date = record["date"]
