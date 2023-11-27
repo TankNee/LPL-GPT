@@ -35,6 +35,7 @@ def get_cid_vid(bvid: str) -> (str, list):
     :param bvid:
     :return: aid 和 （cid_list 代表每一场信息）
     """
+    logger.info(f"cid_vid_url:{CID_VID_URL + bvid}")
     response = requests.get(CID_VID_URL + bvid, headers=headers)
     text = json.loads(response.text)
     aid = text["data"]["aid"]
@@ -43,18 +44,22 @@ def get_cid_vid(bvid: str) -> (str, list):
 
 
 def get_subtitle(cid, aid, bvid) -> dict:
+    api_url = "https://api.bilibili.com/x/player/v2?cid=%s&aid=%s&bvid=%s" % (cid, aid, bvid)
+    logger.info(f"subtitle_url:{api_url}")
     response = requests.get(
-        "https://api.bilibili.com/x/player/v2?cid=%s&aid=%s&bvid=%s" % (cid, aid, bvid),
+        api_url,
         headers=headers,
     )
     text = json.loads(response.text)
     try:
         subtitle_url = (
-            "https:" + text["data"]["subtitle"]["subtitles"][0]["subtitle_url"]
+                "https:" + text["data"]["subtitle"]["subtitles"][0]["subtitle_url"]
         )
-    except KeyError:
+    except Exception:
         logger.error(f"糟糕，subtitle_url没有，对应bvid:{bvid},cid:{cid},aid:{aid}")
         subtitle_url = None
+    if not subtitle_url:
+        return {}
     response = requests.get(subtitle_url, headers=headers)
     ret_dict = json.loads(response.text)
     return ret_dict
@@ -73,9 +78,12 @@ def main(args):
             for i, idx in enumerate(playlist_idx):
                 file_name = base_file_name + "_" + str(i + 1) + ".json"
                 subtitle_dict = get_subtitle(cid_list[idx], aid, bvid)
-                with open(file_name, "w") as f:
-                    logger.info(f"正在往{file_name} 写入字幕数据")
-                    json.dump(subtitle_dict, f, ensure_ascii=False)
+                if not subtitle_dict:
+                    logger.error(f"{file_name} 啊哦，没有字幕")
+                else:
+                    with open(file_name, "w") as f:
+                        logger.info(f"正在往{file_name} 写入字幕数据")
+                        json.dump(subtitle_dict, f, ensure_ascii=False)
 
 
 if __name__ == "__main__":
