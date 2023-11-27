@@ -2,3 +2,5 @@
 videos
 logs
 __pycache__
+.env
+subtitles
