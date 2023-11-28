@@ -42,7 +42,7 @@ def create_logger(log_file="./logs/download.log"):
     logger.add(
         log_file,
         level="DEBUG",
-        rotation="10 MB",
+        rotation="1 day",
         compression="zip",
     )
 
