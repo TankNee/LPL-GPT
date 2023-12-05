@@ -4,3 +4,4 @@ PyYAML==6.0.1
 selenium==4.15.2
 tqdm==4.66.1
 faster_whisper
+moviepy==1.0.3
